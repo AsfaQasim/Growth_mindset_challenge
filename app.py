@@ -7,12 +7,12 @@ from io import BytesIO
 st.set_page_config(page_title="⌚ Data Sweeper", layout="wide")  
 st.title("⌚ Data Sweeper")
 
-# App Title & Description
-st.write("Transform your files between CSV and Excel formats with built-in data cleaning and visualization!")
+# App Description
+st.markdown("### Transform your files between CSV and Excel formats with built-in data cleaning and visualization! 🚀")
 
 # File uploader
 uploaded_files = st.file_uploader(
-    "Upload your file (CSV or Excel):", 
+    "📤 Upload your file (CSV or Excel):", 
     type=["csv", "xlsx"], 
     accept_multiple_files=True
 )
@@ -28,7 +28,7 @@ if uploaded_files:
             if file_ext == ".csv":
                 df = pd.read_csv(file)
             elif file_ext == ".xlsx":
-                df = pd.read_excel(file)
+                df = pd.read_excel(file, engine="openpyxl")  # Ensure openpyxl is used
             else:
                 st.error(f"❌ Unsupported file type: {file_ext}")
                 continue  
@@ -86,23 +86,30 @@ if uploaded_files:
                 buffer = BytesIO()
                 new_file_name = file.name.rsplit(".", 1)[0]  
 
-                if conversion_type == "CSV":
-                    df.to_csv(buffer, index=False)
-                    new_file_name += ".csv"
-                    mime_type = "text/csv"
-                else:
-                    df.to_excel(buffer, index=False, engine="xlsxwriter")
-                    new_file_name += ".xlsx"
-                    mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                try:
+                    if conversion_type == "CSV":
+                        df.to_csv(buffer, index=False, encoding="utf-8")
+                        new_file_name += ".csv"
+                        mime_type = "text/csv"
+                    else:
+                        with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+                            df.to_excel(writer, index=False, sheet_name="Sheet1")
+                            writer.close()  # Ensure Excel file is saved properly
+                        new_file_name += ".xlsx"
+                        mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-                buffer.seek(0)  # Reset buffer position for download
+                    buffer.seek(0)  # Reset buffer position for download
 
-                st.download_button(
-                    label=f"📥 Download {new_file_name}",
-                    data=buffer,
-                    file_name=new_file_name,
-                    mime=mime_type
-                )
+                    st.download_button(
+                        label=f"📥 Download {new_file_name}",
+                        data=buffer,
+                        file_name=new_file_name,
+                        mime=mime_type
+                    )
+                    st.success(f"✅ {new_file_name} is ready for download!")
+
+                except Exception as e:
+                    st.error(f"⚠️ Error converting {file.name}: {e}")
 
         except Exception as e:
             st.error(f"⚠️ Error processing file {file.name}: {e}")
