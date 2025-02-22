@@ -19,12 +19,11 @@ uploaded_files = st.file_uploader(
 
 if uploaded_files:
     for file in uploaded_files: 
-        file_ext = os.path.splitext(file.name)[-1].lower()  
+        file_ext = os.path.splitext(file.name)[1].lower()  # Fixed index usage
         st.write(f"📂 **Uploaded File:** {file.name} ({file_ext})")  
 
         # Read file based on extension
         try:
-            file.seek(0)  # Reset cursor position for reading
             if file_ext == ".csv":
                 df = pd.read_csv(file)
             elif file_ext == ".xlsx":
@@ -71,6 +70,8 @@ if uploaded_files:
                 numeric_cols = df.select_dtypes(include="number").columns.tolist()
                 if len(numeric_cols) >= 2:
                     st.bar_chart(df[numeric_cols].iloc[:, :2])
+                elif len(numeric_cols) == 1:
+                    st.line_chart(df[numeric_cols])
                 else:
                     st.warning("⚠️ Not enough numeric columns for visualization.")
 
@@ -79,7 +80,7 @@ if uploaded_files:
             conversion_type = st.radio(
                 f"Convert {file.name} to:",
                 ["CSV", "Excel"],
-                key=file.names
+                key=file.name  # Fixed key usage
             )
 
             if st.button(f"Convert {file.name}"):
@@ -88,13 +89,12 @@ if uploaded_files:
 
                 try:
                     if conversion_type == "CSV":
-                        df.to_csv(buffer, index=False, encoding="utf-8")
+                        df.to_csv(buffer, index=False, encoding="utf-8-sig")  # Fixed encoding
                         new_file_name += ".csv"
                         mime_type = "text/csv"
                     else:
                         with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
                             df.to_excel(writer, index=False, sheet_name="Sheet1")
-                            writer.close()  # Ensure Excel file is saved properly
                         new_file_name += ".xlsx"
                         mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 

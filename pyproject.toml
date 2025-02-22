@@ -1,0 +1,21 @@
+[project]
+name = "streanlit"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Asifa Muhammad Qasim", email = "160766420+AsfaQasim@users.noreply.github.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=2.2.3",
+    "streamlit>=1.42.2",
+    "xlsxwriter>=3.2.2",
+]
+
+[project.scripts]
+streanlit = "streanlit:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
