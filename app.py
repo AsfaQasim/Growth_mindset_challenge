@@ -79,7 +79,7 @@ if uploaded_files:
             conversion_type = st.radio(
                 f"Convert {file.name} to:",
                 ["CSV", "Excel"],
-                key=file.name
+                key=file.names
             )
 
             if st.button(f"Convert {file.name}"):
